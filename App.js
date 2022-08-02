@@ -1,9 +1,56 @@
 import { useState } from "react";
-import { StyleSheet, ImageBackground } from "react-native";
+import { StyleSheet, ImageBackground, SafeAreaView } from "react-native";
 import StartGameScreen from "./screens/StartGameScreen";
 import { LinearGradient } from "expo-linear-gradient";
+import GameScreen from "./screens/GameScreen";
+import GameOverScreen from "./screens/GameOverScreen";
+import { useFonts } from "expo-font";
+import AppLoading from "expo-app-loading";
 
 export default function App() {
+  const [userNumber, setUserNumber] = useState();
+  const [gameOver, setGameOver] = useState(true);
+  const [rounds, setRounds] = useState(0);
+
+  const [fontsLoaded] = useFonts({
+    "open-sans": require("./assets/fonts/OpenSans-Regular.ttf"),
+    "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+
+  function onConfirmNumber(pickedNumber) {
+    console.log("number picked");
+    setUserNumber(pickedNumber);
+    setGameOver(false);
+  }
+  function onGameOver(guessRoundsLength) {
+    console.log("game over");
+    setGameOver(true);
+    setRounds(guessRoundsLength);
+  }
+  function startNewGame() {
+    console.log("start new game");
+    setUserNumber(null);
+    setRounds(0);
+  }
+
+  let screen = <StartGameScreen onConfirmNumber={onConfirmNumber} />;
+  if (userNumber) {
+    screen = <GameScreen userNumber={userNumber} onGameOver={onGameOver} />;
+  }
+  if (gameOver && userNumber) {
+    screen = (
+      <GameOverScreen
+        userNumber={userNumber}
+        rounds={rounds}
+        startNewGame={startNewGame}
+      />
+    );
+  }
+
   return (
     <LinearGradient
       colors={["#0052D4", "#65C7F7", "#9CECFB"]}
@@ -15,7 +62,7 @@ export default function App() {
         style={styles.rootScreen}
         imageStyle={{ opacity: 0.6 }}
       >
-        <StartGameScreen />
+        <SafeAreaView style={styles.rootScreen}>{screen}</SafeAreaView>
       </ImageBackground>
     </LinearGradient>
   );
